@@ -8,6 +8,8 @@ Created on Tue Jun 12 13:04:33 2018
 from random import randint
 from time import sleep, time
 from tkinter import *
+from PIL import ImageTk, Image
+from tkinter.messagebox import askokcancel
 
 class Player:
     def __init__(self, name):
@@ -25,17 +27,6 @@ class Player:
     def set_button(self, button):
         self.button = button
         
-
-class GeneralButton:
-    def __init__(self, cls):
-        self.initializeButton(cls)
-
-
-class KeyboardButton(GeneralButton):
-    def initializeButton(self, cls):
-        button = input('Press the button you want to use: ')
-        cls.button = button
-
 
 class GeneralGame(Frame):
     def __init__(self, master, numberPlayer=2, roundNumbers=3, **kw):
@@ -85,11 +76,52 @@ def pressedButton(event):
     print("pressed", repr(event.char))
     
 
+class WelcomePage(Frame):
+    def __init__(self, parent=None, framecfig=None, labelcfig=None, imgcfig=None, buttoncfig=None, img = None):
+        Frame.__init__(self, parent, framecfig)
+        self.pack()
+        self.parent = parent
+        self.makeWidgets(labelcfig, imgcfig, buttoncfig)
+         
+    def makeWidgets(self, labelcfig, imgcfig, buttoncfig):
+        Label(self, labelcfig).pack()
+        Label(self, imgcfig).pack()
+        Button(self, text='Start').pack()
+        qt = Quitter(parent=self.parent)
+        qt.pack()
+        qt.config(buttoncfig)
+
+
+class Quitter(Frame): 
+    def __init__(self, parent=None, **kwargs): 
+        Frame.__init__(self, parent)
+        self.pack()
+        self.parent = parent
+        widget = Button(self, text='Quit', command=self.quit, **kwargs)
+        widget.pack(side=LEFT, expand=YES, fill=BOTH)
+    
+    def quit(self):
+        ans = askokcancel('Verify exit', "Really quit?")
+        if ans: Frame.quit(self.parent)
+
+
+def imageResize(path, size=(128, 128)):
+    im = Image.open(path)
+    im = im.resize(size)
+    return im
     
 if __name__ == '__main__':
     root = Tk()
-    game = ButtonGame(root, msg = 'Press')
-    root.bind("<Key>", pressedButton)
+    root.title('Reaction Game')
+    frfig = {'width': 750, 'height': 550}
+    lblcfig = {'text': 'Welcome to \nReaction Game', 'font': ('verdana', 20, 'bold italic'), 'bg': 'light green', 'relief':RAISED, 'bd':2}
+    imprep = imageResize('welcome.jpg', size=(250,250))
+    img = ImageTk.PhotoImage(imprep)
+    imgcfig = {'bd':2, 'image':img}
+    btncfig = {}
+    welcome = WelcomePage(parent=root, framecfig=frfig, labelcfig=lblcfig, imgcfig=imgcfig, buttoncfig=btncfig)
+   # game = ButtonGame(root, msg = 'Press')
+   # root.bind("<Key>", pressedButton)
   #  game.startGame()
     root.mainloop()
     
