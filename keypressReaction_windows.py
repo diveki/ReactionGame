@@ -1,6 +1,8 @@
 import tkinter as tk
 import time
 import random
+import pandas as pd
+import numpy as np
 
 t = 0
 
@@ -31,6 +33,7 @@ class GeneralGame(tk.Frame):
         self.maxWait = 5
         self.players = {}
         self.results = {}
+        self.resultsContainer = pd.DataFrame(columns=['Round', 'Position', 'Button', 'Delay', 'Name'])
         self.__dict__.update(kw)
         self.initializeGame()
     
@@ -44,15 +47,11 @@ class GeneralGame(tk.Frame):
             startTime = time()
             self.startSignal()
     
-    def determineRoundPlayerNames(self):
+    def getPlayerName(self, pressedKey):
         for pid in range(len(self.players)):
             player = self.players[pid+1]
-            for ii, item in enumerate(self.results[self.roundCount]):
-                if player.get_button() == item[0]:
-                    self.results[self.roundCount][ii].append(player.name)
-        for ii, item in enumerate(self.results[self.roundCount]):
-            if len(item) < 3:
-                self.results[self.roundCount][ii].append('Invalid')
+            if player.get_button() == pressedKey:
+                return player.name
     
     def getRoundWinner(self):
         names = list(map(lambda x: x[2], self.results[self.roundCount]))
@@ -62,6 +61,23 @@ class GeneralGame(tk.Frame):
             return 'Nobody'
         else:
             return names[0]
+    
+    def addResult2Container(self):
+        rounds = []
+        positions = []
+        button = []
+        delay = []
+        name = []
+        for pos, item in enumerate(self.results[self.roundCount]):
+            positions.append(pos)
+            rounds.append(self.roundCount)
+            button.append(item[0])
+            delay.append(item[1])
+            name.append(item[2])
+        self.resultsContainer = pd.concat([self.resultsContainer, pd.DataFrame(np.array([rounds, positions, button, delay, name]).T, columns = ['Round', 'Position', 'Button', 'Delay', 'Name'])])
+        self.resultsContainer.reset_index()
+            
+        
         
                     
             
@@ -79,26 +95,24 @@ class MyApp(GeneralGame):
         pressedKey = event.char
         self.pressNum = self.pressNum + 1
         if self.pressNum == 1:
-            self.results[self.roundCount] = [[pressedKey, delta]]
+            self.results[self.roundCount] = [[pressedKey, delta, self.getPlayerName(pressedKey)]]
         else:
-            self.results[self.roundCount].append([pressedKey, delta])
-
+            self.results[self.roundCount].append([pressedKey, delta, self.getPlayerName(pressedKey)])
+        self.text.unbind(event.char)
         if self.pressNum >= self.playerNum:
-            self.text.unbind('<Key>')
-            self.determineRoundPlayerNames()
-            print('Winner is: %s' % self.getRoundWinner())
+            self.addResult2Container()
+            print('Winner is: %s, with seconds delay!' % (self.getRoundWinner()))
             if self.roundCount >= self.roundnum:
-                self.text.unbind('<Key>')
                 print('End of game')
             else:
-                #print(self.results[self.roundCount])
                 self.roundCount = self.roundCount + 1
                 self.pressNum = 0
                 print('Next round starts soon')
                 self.startGame()
     
     def startGame(self):
-        self.text.bind('<Key>', self.callback)
+        self.text.bind(self.players[1].button, self.callback)
+        self.text.bind(self.players[2].button, self.callback)
         time.sleep(random.randint(1,5))
         print('Turn %s, Press button now!' % self.roundCount)
         self.t = time.time()     
