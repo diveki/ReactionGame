@@ -54,13 +54,8 @@ class GeneralGame(tk.Frame):
                 return player.name
     
     def getRoundWinner(self):
-        names = list(map(lambda x: x[2], self.results[self.roundCount]))
-        names = list(filter(lambda x: x != 'Invalid', names))
-        if names == []:
-            print('Nobody pressed the right button')
-            return 'Nobody'
-        else:
-            return names[0]
+        winner = self.results[self.roundCount][0]
+        return winner
     
     def addResult2Container(self):
         rounds = []
@@ -100,21 +95,24 @@ class MyApp(GeneralGame):
             self.results[self.roundCount].append([pressedKey, delta, self.getPlayerName(pressedKey)])
         self.text.unbind(event.char)
         if self.pressNum >= self.playerNum:
+            self.text.config(state=tk.NORMAL)
+            self.text.insert(tk.END, 'Winner is: %s, with %s seconds delay! \n' % (self.getRoundWinner()[2], self.getRoundWinner()[1]))
             self.addResult2Container()
-            print('Winner is: %s, with seconds delay!' % (self.getRoundWinner()))
             if self.roundCount >= self.roundnum:
-                print('End of game')
+                self.text.insert(tk.END, 'End of game\n')
+                self.text.config(state=tk.DISABLED)
             else:
                 self.roundCount = self.roundCount + 1
                 self.pressNum = 0
-                print('Next round starts soon')
+                self.text.insert(tk.END, 'Next round starts soon\n')
                 self.startGame()
     
     def startGame(self):
         self.text.bind(self.players[1].button, self.callback)
         self.text.bind(self.players[2].button, self.callback)
         time.sleep(random.randint(1,5))
-        print('Turn %s, Press button now!' % self.roundCount)
+        self.text.insert(tk.END, 'Turn %s, Press button now!\n' % self.roundCount)
+        self.text.config(state=tk.DISABLED)
         self.t = time.time()     
                     
     def set_players(self, pid):
