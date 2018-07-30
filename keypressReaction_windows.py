@@ -110,9 +110,9 @@ class MyApp(GeneralGame):
     def startGame(self):
         self.text.bind(self.players[1].button, self.callback)
         self.text.bind(self.players[2].button, self.callback)
-        time.sleep(random.randint(1,5))
         self.text.insert(tk.END, 'Turn %s, Press button now!\n' % self.roundCount)
         self.text.config(state=tk.DISABLED)
+        time.sleep(random.randint(1,5))
         self.t = time.time()     
                     
     def set_players(self, pid):
@@ -122,7 +122,18 @@ class MyApp(GeneralGame):
         p.set_button(button)
         return p
         
-        
+
+class GeneralButton():
+    def __init__(self, button):
+        self.bid = button
+    
+class KeyButton(GeneralButton):
+    def activate(self, func):
+        MyApp.text.bind(self.bid, func)
+    
+    def getPress(self):
+        pass
+    
 
 root = tk.Tk()
 app = MyApp(root)
